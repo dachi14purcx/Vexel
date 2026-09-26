@@ -1,48 +1,48 @@
-import { Router, Request } from "express"
-import multer from "multer"
-import { authMiddleware } from "../middleware/auth.middleware.js"
+import {UserService} from "../services/users.service.js"
 import { wrap } from "../lib/helpers.js"
-import { BadRequestError } from "../lib/Error.js"
-import { userService } from "../services/users.service.js"
+import { Request, Response } from "express"
 
-const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 },
-})
+const getPresignedUrl = (type: "avatars" | "banners") => 
+    wrap(async (req: Request, res: Response) => {
+        if(!req.user) throw new Error('') //TODO
+        const { contentType } = req.body
+        if(!contentType) return res.status(400).json({ error: 'contentType is missing!' })
+        const result = type === 'avatars' ? await UserService.getAvatarPresignedUrl(req.user.id, contentType) : await UserService.getBannerPresignedUrl(req.user.id, contentType)
+        return res.status(200).json(result)
+    })
 
-const currentUserId = (req: Request): string => {
-    if (!req.user?.id) throw new BadRequestError("Authenticated user is missing")
-    return req.user.id
-}
 
-export const usersController = Router()
+const saveMedia = (type: "avatar" | "banner") =>
+    wrap(async (req: Request, res: Response) => {
+        if (!req.user) throw new Error(); // TODO
+        const { publicUrl } = req.body;
+        if (!publicUrl) return res.status(400).json({ error: "publicUrl is required." });
+        type === "avatar"
+            ? await UserService.saveAvatar(req.user.id, publicUrl)
+            : await UserService.saveBanner(req.user.id, publicUrl);
+        res.status(200).json({ success: true });
+    });
 
-usersController.use(authMiddleware)
+const saveProfile = () =>
+    wrap(async (req: Request, res: Response) => {
+        if (!req.user) throw new Error(); // TODO
+        await UserService.saveProfile(req.user.id, req.body);
+        res.status(200).json({ success: true });
+    });
 
-usersController.get("/me", wrap(async (req, res) => {
-    const profile = await userService.getProfile(currentUserId(req))
-    res.status(200).json({ profile })
-}))
 
-usersController.patch("/me", wrap(async (req, res) => {
-    if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
-        throw new BadRequestError("Profile body must be an object")
-    }
-    const profile = await userService.updateProfile(currentUserId(req), req.body)
-    res.status(200).json({ profile })
-}))
 
-usersController.post(
-    "/me/avatar",
-    upload.single("avatar"),
-    wrap(async (req, res) => {
-        if (!req.file) throw new BadRequestError("Avatar image is required")
-
-        const key = await userService.saveProfilePicture(
-            currentUserId(req),
-            req.file.buffer,
-            req.file.mimetype,
-        )
-        res.status(200).json({ key })
+export const UserController = {
+    getAuthenticatedUserProfile: wrap(async (req: Request, res: Response) => {
+        if (!req.user) throw new Error(); // TODO
+        const userProfile = await UserService.getAuthenticatedUserProfile(req.user.id);
+        res.status(200).json(userProfile);
     }),
-)
+
+    getAvatarPresignedUrl: getPresignedUrl("avatars"),
+    getBannerPresignedUrl: getPresignedUrl("banners"),
+    saveAvatar: saveMedia("avatar"),
+    saveBanner: saveMedia("banner"),
+    saveProfile: saveProfile(),
+
+};

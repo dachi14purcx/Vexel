@@ -1,18 +1,11 @@
-import { Outlet } from "react-router"
+import { Outlet, useLocation } from "react-router"
 import Navbar from "./components/Navigation/Navbar"
 import { useState } from "react"
 import { useEffect } from "react";
-import { authClient } from "./lib/auth-clients";
 
 type Theme = 'light' | 'dark';
 
 function App() {
-  const { data: session } = authClient.useSession()
-
-  if (session) {
-    console.log(session)
-  }
-
   const [theme, setTheme] = useState<Theme>('light')
   const [mounted, setMounted] = useState(false);
 
@@ -29,9 +22,11 @@ function App() {
     return () => cancelAnimationFrame(id);
   }, []);
 
+  const location = useLocation()
+
   return (
     <>
-      <Navbar theme={theme} setTheme={setTheme} />
+      { location.pathname != '/profile' && <Navbar theme={theme} setTheme={setTheme} /> }
       <Outlet context={{theme, setTheme}}/>
     </>
   )

@@ -32,11 +32,11 @@ const Navbar = ({ theme, setTheme }: NavbarProps) => {
     <div>
       <h2 className={`text-[clamp(20px,2.22vw,32px)] duration-300 vexel ${theme == 'light' ? 'text-[#22201D]' : 'dark-text'}`}>Vexel</h2>
       
-      <div className='mt-[clamp(6px,1.11vh,10px)] flex flex-col items-center'>
+      <Link to={'/profile'} className='mt-[clamp(6px,1.11vh,10px)] flex flex-col items-center'>
         <img src={profileBackground} alt="" className={`duration-300 w-[clamp(120px,13.89vw,200px)] aspect-2/1 object-cover rounded-[clamp(6px,0.69vw,10px)] ${theme == 'light' ? 'border-[#E8E2DA]' : 'border-[#353535]' } border-[clamp(1px,0.14vw,2px)]`}/>
         <img src={profile} alt="" className={`duration-300  mt-[clamp(-60px,-4.17vw,-36px)] ${theme == 'light' ? 'border-[#E8E2DA]' : 'border-[#353535]' } border-[clamp(1px,0.14vw,2px)] rounded-full w-[clamp(63px,7.29vw,105px)]`}/>
         <h3 className={`duration-300 ${theme == 'light' ? 'light-text' : 'dark-text'} text-[clamp(11px,1.25vw,18px)] font-bold mt-[clamp(3px,0.35vw,5px)]`}>Lemon Watermelon</h3>
-      </div>
+      </Link>
 
       <div className='flex flex-col gap-[clamp(9px,1.67vh,15px)] mt-[clamp(12px,1.39vw,20px)] items-start'>
         <Link to={'/'} className={location.pathname == '/' ? active : inactive}><FiHome className='text-[clamp(12px,1.39vw,20px)] '/>Home</Link>
